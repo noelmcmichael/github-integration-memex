@@ -104,6 +104,20 @@ Create a new Memex project and verify that:
 - ✅ Repository count: 2 repositories
 - ✅ Current repo detected: github-integration-memex
 
+## Future Enhancements
+
+See `FUTURE_ENHANCEMENTS.md` for a comprehensive plan of potential CI/CD improvements including:
+- **Automated CI/CD pipeline templates** - Pre-configured workflows for common project types
+- **Environment management** - Streamlined secrets and environment setup
+- **Testing automation** - Comprehensive testing frameworks and quality gates
+- **Deployment automation** - Zero-touch deployment processes
+- **Monitoring & observability** - Real-time application health visibility
+- **Security & compliance** - Automated security scanning and compliance
+- **Code quality automation** - Consistent code quality across projects
+- **Documentation automation** - Always up-to-date documentation
+- **Multi-environment workflows** - Seamless development across environments
+- **Developer experience improvements** - Faster, more enjoyable development
+
 ## Notes
 - User wants GitHub to be default for all Memex projects
 - GitHub CLI already configured and authenticated
