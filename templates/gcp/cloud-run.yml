@@ -1,0 +1,99 @@
+# Cloud Run deployment configuration
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: ${APP_NAME}
+  annotations:
+    run.googleapis.com/ingress: all
+    run.googleapis.com/execution-environment: gen2
+spec:
+  template:
+    metadata:
+      annotations:
+        # CPU and memory allocation
+        run.googleapis.com/cpu: "1"
+        run.googleapis.com/memory: "512Mi"
+        
+        # Scaling configuration
+        run.googleapis.com/min-instances: "0"
+        run.googleapis.com/max-instances: "10"
+        
+        # Request timeout
+        run.googleapis.com/timeout: "300s"
+        
+        # SQL instance connection (if using Cloud SQL)
+        run.googleapis.com/cloudsql-instances: "${GCP_PROJECT_ID}:${REGION}:${SQL_INSTANCE_NAME}"
+        
+        # VPC access (if needed)
+        # run.googleapis.com/vpc-access-connector: projects/${GCP_PROJECT_ID}/locations/${REGION}/connectors/${CONNECTOR_NAME}
+    spec:
+      containerConcurrency: 100
+      containers:
+      - image: gcr.io/${GCP_PROJECT_ID}/${APP_NAME}:${IMAGE_TAG}
+        ports:
+        - containerPort: 8080
+          name: http1
+        
+        # Environment variables
+        env:
+        - name: PORT
+          value: "8080"
+        - name: NODE_ENV
+          value: "production"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-url
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-url
+              key: url
+        - name: SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: app-secrets
+              key: secret-key
+        
+        # Resource limits
+        resources:
+          limits:
+            cpu: "1"
+            memory: "512Mi"
+          requests:
+            cpu: "0.5"
+            memory: "256Mi"
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 2
+        
+        # Startup probe
+        startupProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 10
+  
+  traffic:
+  - percent: 100
+    latestRevision: true
